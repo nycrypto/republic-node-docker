@@ -35,21 +35,92 @@
       <div class="k">Note</div>
       <div>This template is generic. Configure RPC via <code>NODE_RPC_HTTP_URL</code>.</div>
     </div>
+    <div class="card">
+  <h3>Wallet / Validator</h3>
+
+  <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end;">
+    <div style="flex:1; min-width:260px;">
+      <div class="k">Wallet address</div>
+      <input id="addr" placeholder="paste address here" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:8px;" />
+    </div>
+
+    <div style="flex:1; min-width:260px;">
+      <div class="k">Valoper address</div>
+      <input id="valoper" placeholder="paste valoper here" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:8px;" />
+    </div>
+
+    <button id="check" style="padding:10px 14px; border:1px solid #333; border-radius:10px; background:#111; color:#fff;">
+      Check
+    </button>
+  </div>
+
+  <div style="margin-top:12px;">
+    <div class="k">Balance</div>
+    <pre id="balance" style="white-space:pre-wrap; background:#f6f6f6; padding:10px; border-radius:10px;">(empty)</pre>
+
+    <div class="k" style="margin-top:10px;">Delegation</div>
+    <pre id="delegation" style="white-space:pre-wrap; background:#f6f6f6; padding:10px; border-radius:10px;">(empty)</pre>
+
+    <div class="k" style="margin-top:10px;">Validator</div>
+    <pre id="validator" style="white-space:pre-wrap; background:#f6f6f6; padding:10px; border-radius:10px;">(empty)</pre>
+  </div>
+</div>
 
     <script>
-      async function load() {
-        try {
-          const s = await (await fetch("/api/node/status")).json();
-          document.getElementById("height").textContent = s.latest_block_height ?? "N/A";
-          document.getElementById("sync").textContent = String(s.catching_up ?? "N/A");
-        } catch {}
-        try {
-          const p = await (await fetch("/api/node/peers")).json();
-          document.getElementById("peers").textContent = p.n_peers ?? "N/A";
-        } catch {}
+  async function loadNode() {
+    try {
+      const s = await (await fetch("/api/node/status")).json();
+      document.getElementById("height").textContent = s.latest_block_height ?? "N/A";
+      document.getElementById("sync").textContent = String(s.catching_up ?? "N/A");
+    } catch {}
+    try {
+      const p = await (await fetch("/api/node/peers")).json();
+      document.getElementById("peers").textContent = p.n_peers ?? "N/A";
+    } catch {}
+  }
+
+  async function loadWallet() {
+    const addr = document.getElementById("addr").value.trim();
+    const val = document.getElementById("valoper").value.trim();
+
+    if (!addr) {
+      document.getElementById("balance").textContent = "(paste wallet address)";
+      return;
+    }
+
+    document.getElementById("balance").textContent = "Loading...";
+    document.getElementById("delegation").textContent = "(empty)";
+    document.getElementById("validator").textContent = "(empty)";
+
+    try {
+      const b = await (await fetch(`/api/wallet/${encodeURIComponent(addr)}/balance`)).json();
+      document.getElementById("balance").textContent = JSON.stringify(b, null, 2);
+    } catch {
+      document.getElementById("balance").textContent = "Balance request failed";
+    }
+
+    if (val) {
+      try {
+        const d = await (await fetch(`/api/wallet/${encodeURIComponent(addr)}/delegation/${encodeURIComponent(val)}`)).json();
+        document.getElementById("delegation").textContent = JSON.stringify(d, null, 2);
+      } catch {
+        document.getElementById("delegation").textContent = "Delegation request failed";
       }
-      load();
-      setInterval(load, 5000);
-    </script>
-  </body>
-</html>
+
+      try {
+        const v = await (await fetch(`/api/validator/${encodeURIComponent(val)}`)).json();
+        document.getElementById("validator").textContent = JSON.stringify(v, null, 2);
+      } catch {
+        document.getElementById("validator").textContent = "Validator request failed";
+      }
+    } else {
+      document.getElementById("delegation").textContent = "(paste valoper to see delegation)";
+document.getElementById("validator").textContent = "(paste valoper to see validator)";
+    }
+  }
+
+  document.getElementById("check").addEventListener("click", loadWallet);
+
+  loadNode();
+  setInterval(loadNode, 5000);
+</script>
