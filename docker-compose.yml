@@ -1,0 +1,56 @@
+services:
+  node:
+    image: ${NODE_IMAGE}
+    container_name: republic-node
+    restart: unless-stopped
+    # NOTE: you must set the correct command/args for your node image.
+    # command: ["your-node-binary", "start", "..."]
+    ports:
+      - "${NODE_P2P_TCP_PORT}:${NODE_P2P_TCP_PORT}/tcp"
+      - "${NODE_P2P_UDP_PORT}:${NODE_P2P_UDP_PORT}/udp"
+    volumes:
+      - node_data:/data
+    networks:
+      - internal
+
+  dashboard:
+    build: ./dashboard
+    container_name: rai-dashboard-lite
+    restart: unless-stopped
+    environment:
+      - NODE_RPC_HTTP_URL=${NODE_RPC_HTTP_URL}
+      - PORT=${DASHBOARD_PORT}
+    depends_on:
+      - node
+    networks:
+      - internal
+
+  caddy:
+    image: caddy:2
+    container_name: caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      - DASHBOARD_DOMAIN=${DASHBOARD_DOMAIN}
+      - DASHBOARD_PORT=${DASHBOARD_PORT}
+      - DASHBOARD_BASIC_AUTH_USER=${DASHBOARD_BASIC_AUTH_USER}
+      - DASHBOARD_BASIC_AUTH_PASS_HASH=${DASHBOARD_BASIC_AUTH_PASS_HASH}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - dashboard
+    networks:
+      - internal
+
+volumes:
+  node_data:
+  caddy_data:
+  caddy_config:
+
+networks:
+  internal:
+    driver: bridge
