@@ -27,6 +27,13 @@ This repo is **generic**: no personal IPs, ports, or addresses are hardcoded.
 - Put the dashboard behind **Basic Auth** (Caddy).
 - Keep secrets in `.env` (never commit it).
 
+## REST requirement (for balance/delegation)
+Wallet and validator endpoints use the Cosmos REST/LCD API.
+Set `REST_HTTP_URL` in `.env` (common default is `http://127.0.0.1:1317` or inside Docker `http://node:1317`).
+
+## Public access tip
+If you expose the dashboard publicly, always keep it behind **Basic Auth** (Caddy) and do not expose node RPC/REST to the internet.
+
 ## Files
 - `docker-compose.yml` - services
 - `Caddyfile` - reverse proxy + basic auth
