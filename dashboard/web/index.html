@@ -1,0 +1,55 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>RAI Dashboard Lite</title>
+    <style>
+      body { font-family: system-ui, sans-serif; max-width: 900px; margin: 24px auto; padding: 0 12px; }
+      .card { border: 1px solid #ddd; border-radius: 10px; padding: 12px 14px; margin: 12px 0; }
+      .row { display: flex; gap: 12px; flex-wrap: wrap; }
+      .k { color: #555; }
+      code { background: #f5f5f5; padding: 2px 6px; border-radius: 6px; }
+    </style>
+  </head>
+  <body>
+    <h1>RAI Dashboard Lite</h1>
+    <p>Read-only node status + peers (minimal UI).</p>
+
+    <div class="row">
+      <div class="card" style="flex:1">
+        <div class="k">Height</div>
+        <div id="height">...</div>
+      </div>
+      <div class="card" style="flex:1">
+        <div class="k">Catching up</div>
+        <div id="sync">...</div>
+      </div>
+      <div class="card" style="flex:1">
+        <div class="k">Peers</div>
+        <div id="peers">...</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="k">Note</div>
+      <div>This template is generic. Configure RPC via <code>NODE_RPC_HTTP_URL</code>.</div>
+    </div>
+
+    <script>
+      async function load() {
+        try {
+          const s = await (await fetch("/api/node/status")).json();
+          document.getElementById("height").textContent = s.latest_block_height ?? "N/A";
+          document.getElementById("sync").textContent = String(s.catching_up ?? "N/A");
+        } catch {}
+        try {
+          const p = await (await fetch("/api/node/peers")).json();
+          document.getElementById("peers").textContent = p.n_peers ?? "N/A";
+        } catch {}
+      }
+      load();
+      setInterval(load, 5000);
+    </script>
+  </body>
+</html>
