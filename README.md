@@ -22,6 +22,12 @@ This repo is **generic**: no personal IPs, ports, or addresses are hardcoded.
 3) Start:
    - `docker compose up -d --build`
 
+## What you need to change
+1) Set `NODE_IMAGE` in `.env` (required).
+2) If you want public access: set `DASHBOARD_DOMAIN` + Basic Auth (`DASHBOARD_BASIC_AUTH_USER` and `DASHBOARD_BASIC_AUTH_PASS_HASH`).
+3) Make sure your node exposes RPC/REST internally (defaults in this template: `NODE_RPC_HTTP_URL=http://node:26657`, `REST_HTTP_URL=http://node:1317`).
+4) For wallet/validator data, paste your **wallet address** and **valoper address** in the dashboard UI.
+   
 ## Security notes
 - Do **NOT** expose node RPC to the internet.
 - Put the dashboard behind **Basic Auth** (Caddy).
@@ -39,3 +45,4 @@ If you expose the dashboard publicly, always keep it behind **Basic Auth** (Cadd
 - `Caddyfile` - reverse proxy + basic auth
 - `dashboard/` - minimal read-only dashboard (Node.js)
 - `.env.example` - config placeholders
+
